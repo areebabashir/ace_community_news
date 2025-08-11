@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import db from "./config/database.js";
 import sportsNewsRoutes from "./routes/sportsNewsRoutes.js";
+import announcementRoutes from "./routes/announcementRoutes.js";
 
 dotenv.config();
 
@@ -25,6 +26,14 @@ app.get("/users", (req, res) => {
 
 // ✅ Mount sports news routes
 app.use("/sports-news", sportsNewsRoutes);
+app.use("/announcements", announcementRoutes);
+
+
+
+
+
+
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import db from "./config/database.js";
 import sportsNewsRoutes from "./routes/sportsNewsRoutes.js";
 import announcementRoutes from "./routes/announcementRoutes.js";
+import clubNewsRoutes from "./routes/clubNewsRoute.js";
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ app.get("/users", (req, res) => {
 // ✅ Mount sports news routes
 app.use("/sports-news", sportsNewsRoutes);
 app.use("/announcements", announcementRoutes);
+app.use("/club-news", clubNewsRoutes);
 
 
 

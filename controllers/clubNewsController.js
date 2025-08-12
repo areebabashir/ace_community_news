@@ -3,13 +3,31 @@ import ClubNews from "../Models/ClubNewsModel.js";
 
 // Create or Save Draft
 export const createNews = async (req, res) => {
-
-  console.log(req.body)
   try {
     const data = req.body;
-    // Basic validations can be added here or in middleware
+
+    // Build visuals data from uploaded files
+    const visuals = {};
+    if (req.files) {
+      if (req.files.images) {
+        visuals.images = req.files.images.map(file => ({
+          filename: file.filename,
+          path: file.path,
+        }));
+      }
+      if (req.files.video && req.files.video.length > 0) {
+        visuals.video = {
+          filename: req.files.video[0].filename,
+          path: req.files.video[0].path,
+        };
+      }
+    }
+
+    // Add visuals JSON to data
+    data.visuals = visuals;
 
     const news = await ClubNews.create(data);
+
     res.status(201).json({ message: "News created", news });
   } catch (error) {
     res.status(500).json({ error: error.message });

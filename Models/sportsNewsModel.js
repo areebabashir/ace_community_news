@@ -1,3 +1,4 @@
+// Updated sportsNewsModel.js
 import { DataTypes } from "sequelize";
 import sequelize from "../config/database.js";
 
@@ -7,10 +8,6 @@ const SportsNews = sequelize.define("SportsNews", {
     autoIncrement: true,
     primaryKey: true,
   },
-  external_id: {
-    type: DataTypes.STRING(128),
-    allowNull: true,
-  },
   title: {
     type: DataTypes.STRING(255),
     allowNull: false,
@@ -19,17 +16,9 @@ const SportsNews = sequelize.define("SportsNews", {
     type: DataTypes.STRING(255),
     allowNull: true,
   },
-  thumbnail_url: {
-    type: DataTypes.STRING(2083),
+  content: {
+    type: DataTypes.TEXT,
     allowNull: true,
-  },
-  article_url: {
-    type: DataTypes.STRING(2083),
-    allowNull: false,
-  },
-  source: {
-    type: DataTypes.STRING(100),
-    defaultValue: "ace",
   },
   published_at: {
     type: DataTypes.DATE,
@@ -39,13 +28,13 @@ const SportsNews = sequelize.define("SportsNews", {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,
   },
-  raw_json: {
+  visuals: {
     type: DataTypes.JSON,
     allowNull: true,
   },
 }, {
   tableName: "sports_news_cache",
-  timestamps: false, // since cached_at is handled by DB
+  timestamps: false,
 });
 
 export default SportsNews;

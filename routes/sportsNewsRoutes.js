@@ -6,10 +6,12 @@ import {
   updateSportsNews,
   deleteSportsNews
 } from "../controllers/sportsNewsController.js";
+import { uploadClubNewsVisuals } from "../middlewares/uploads.js";
+
 
 const router = express.Router();
 
-router.post("/create", createSportsNews);
+router.post("/create", uploadClubNewsVisuals, createSportsNews);
 router.get("/get", getAllSportsNews);
 router.get("/get/:id", getSportsNewsById);
 router.put("/put/:id", updateSportsNews);

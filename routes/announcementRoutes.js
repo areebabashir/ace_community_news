@@ -7,13 +7,15 @@ import {
   updateAnnouncement,
   deleteAnnouncement
 } from "../controllers/announcementController.js";
+import { uploadClubNewsVisuals } from "../middlewares/uploads.js";
+
 
 const router = express.Router();
 
-router.post("/create", createAnnouncement);
+router.post("/create",uploadClubNewsVisuals ,createAnnouncement);
 router.get("/get", getAllAnnouncements);
 router.get("/get/:id", getAnnouncementById);
-router.put("/update/:id", updateAnnouncement);
+router.put("/update/:id", uploadClubNewsVisuals,updateAnnouncement);
 router.delete("/delete/:id", deleteAnnouncement);
 
 export default router;

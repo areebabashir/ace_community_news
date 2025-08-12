@@ -1,4 +1,4 @@
-// models/announcementModel.js
+// Updated announcementModel.js
 import { DataTypes } from "sequelize";
 import sequelize from "../config/database.js";
 
@@ -7,10 +7,6 @@ const Announcement = sequelize.define("Announcement", {
     type: DataTypes.BIGINT,
     autoIncrement: true,
     primaryKey: true,
-  },
-  external_id: {
-    type: DataTypes.STRING(128),
-    allowNull: true,
   },
   type: {
     type: DataTypes.ENUM("announcement", "tutorial"),
@@ -28,14 +24,6 @@ const Announcement = sequelize.define("Announcement", {
     type: DataTypes.TEXT,
     allowNull: true,
   },
-  thumbnail_url: {
-    type: DataTypes.STRING(2083),
-    allowNull: true,
-  },
-  article_url: {
-    type: DataTypes.STRING(2083),
-    allowNull: false,
-  },
   published_at: {
     type: DataTypes.DATE,
     allowNull: true,
@@ -44,7 +32,7 @@ const Announcement = sequelize.define("Announcement", {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,
   },
-  raw_json: {
+  visuals: {
     type: DataTypes.JSON,
     allowNull: true,
   },

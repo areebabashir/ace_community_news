@@ -3,6 +3,8 @@ import ClubNews from "../Models/ClubNewsModel.js";
 
 // Create or Save Draft
 export const createNews = async (req, res) => {
+
+  console.log(req.body)
   try {
     const data = req.body;
     // Basic validations can be added here or in middleware
@@ -18,6 +20,15 @@ export const createNews = async (req, res) => {
 export const getPublishedNews = async (req, res) => {
   try {
     const news = await ClubNews.findAll({ where: { status: "published" }, order: [["publish_date", "DESC"]] });
+    res.json(news);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+export const getDraftNews = async (req, res) => {
+  try {
+    console.log("getting draft")
+    const news = await ClubNews.findAll({ where: { status: "draft" }});
     res.json(news);
   } catch (error) {
     res.status(500).json({ error: error.message });

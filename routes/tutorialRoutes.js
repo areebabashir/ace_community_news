@@ -6,14 +6,14 @@ import {
   updateTutorial,
   deleteTutorial,
 } from "../controllers/tutorialController.js";
-import { uploadClubNewsVisuals } from "../middlewares/uploads.js";
+import { uploadTutorialVisuals } from "../middlewares/uploads.js";
 
 const router = express.Router();
 
-router.post("/", uploadClubNewsVisuals, createTutorial); // Create
+router.post("/", uploadTutorialVisuals, createTutorial); // Create
 router.get("/", getAllTutorials); // Read all
 router.get("/:id", getTutorialById); // Read by ID
-router.put("/:id", uploadClubNewsVisuals, updateTutorial); // Update
+router.put("/:id", uploadTutorialVisuals, updateTutorial); // Update
 router.delete("/:id", deleteTutorial); // Delete
 
 export default router;

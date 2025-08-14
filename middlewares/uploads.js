@@ -2,22 +2,25 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 
-
 // === 1. Configure storage ===
-// We’ll store files locally for now (you can switch to S3, Cloudinary later)
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     let uploadPath;
 
-    if (file.fieldname === "images") {
-      uploadPath = "uploads/club_news/images";
-    } else if (file.fieldname === "video") {
-      uploadPath = "uploads/club_news/videos";
+    // Dynamic folder selection based on request property
+    if (req.uploadFolder) {
+      if (file.fieldname === "images") {
+        uploadPath = `uploads/${req.uploadFolder}/images`;
+      } else if (file.fieldname === "video") {
+        uploadPath = `uploads/${req.uploadFolder}/videos`;
+      } else {
+        uploadPath = `uploads/${req.uploadFolder}/others`;
+      }
     } else {
-      uploadPath = "uploads/club_news/others";
+      // fallback (should not happen if middleware sets req.uploadFolder)
+      uploadPath = "uploads/misc";
     }
 
-    // Check if directory exists, if not create it
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }
@@ -34,72 +37,71 @@ const storage = multer.diskStorage({
 });
 
 // === 2. File type filter ===
-const fileFilter = (allowedMimeTypes) => {
-  return (req, file, cb) => {
-    if (allowedMimeTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error("Invalid file type"), false);
-    }
-  };
+const fileFilter = (req, file, cb) => {
+  const allowedMimeTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "video/mp4",
+  ];
+  if (allowedMimeTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only JPG, PNG, WebP, and MP4 allowed"), false);
+  }
 };
 
-// === 3. Middleware Factory ===
-// Flexible: we pass in field config and limits
-export const createUploader = (fieldConfigs, sizeLimitsMB) => {
+// === 3. Factory function ===
+const createUploader = (fieldConfigs, sizeLimitsMB) => {
   return multer({
     storage,
-    fileFilter: (req, file, cb) => {
-      const allAllowed = [
-        "image/jpeg",
-        "image/png",
-        "image/webp",
-        "video/mp4",
-      ];
-      if (allAllowed.includes(file.mimetype)) {
-        cb(null, true);
-      } else {
-        cb(new Error("Only JPG, PNG, WebP, and MP4 allowed"), false);
-      }
-    },
+    fileFilter,
     limits: {
       fileSize: sizeLimitsMB * 1024 * 1024, // MB → bytes
     },
   }).fields(fieldConfigs);
 };
 
-// === 4. Specific Middleware for Club News ===
-export const uploadClubNewsVisuals = (req, res, next) => {
-  // Max 3 images, 1 video
-  const upload = createUploader(
-    [
-      { name: "images", maxCount: 3 },
-      { name: "video", maxCount: 1 },
-    ],
-    20 // max size per file (largest case for video)
-  );
+// === 4. Reusable file handling function ===
+const handleUpload = (folderName) => {
+  return (req, res, next) => {
+    req.uploadFolder = folderName; // tells storage where to save
 
-  upload(req, res, (err) => {
-    if (err) {
-      return res.status(400).json({ error: err.message });
-    }
+    const upload = createUploader(
+      [
+        { name: "images", maxCount: 3 },
+        { name: "video", maxCount: 1 },
+      ],
+      20 // max size in MB per file
+    );
 
-    // Validate total files
-    const imagesCount = req.files?.images?.length || 0;
-    const videoCount = req.files?.video?.length || 0;
+    upload(req, res, (err) => {
+      if (err) {
+        return res.status(400).json({ error: err.message });
+      }
 
-    if (imagesCount > 3) {
-      return res.status(400).json({ error: "Max 3 images allowed" });
-    }
-    if (videoCount > 1) {
-      return res.status(400).json({ error: "Only 1 video allowed" });
-    }
-    if (imagesCount + videoCount > 4) {
-      return res
-        .status(400)
-        .json({ error: "Total files cannot exceed 4 (images + video)" });
-    }
+      const imagesCount = req.files?.images?.length || 0;
+      const videoCount = req.files?.video?.length || 0;
 
-    next();
-  });
+      if (imagesCount > 3) {
+        return res.status(400).json({ error: "Max 3 images allowed" });
+      }
+      if (videoCount > 1) {
+        return res.status(400).json({ error: "Only 1 video allowed" });
+      }
+      if (imagesCount + videoCount > 4) {
+        return res
+          .status(400)
+          .json({ error: "Total files cannot exceed 4 (images + video)" });
+      }
+
+      next();
+    });
+  };
 };
+
+// === 5. Separate middlewares for each type ===
+export const uploadClubNewsVisuals = handleUpload("club_news");
+export const uploadAnnouncementVisuals = handleUpload("announcements");
+export const uploadSportsNewsVisuals = handleUpload("sports_news");
+export const uploadTutorialVisuals = handleUpload("tutorials");

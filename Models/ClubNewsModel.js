@@ -30,8 +30,21 @@ const ClubNews = sequelize.define("ClubNews", {
     allowNull: false,
   },
   visuals: {
-    type: DataTypes.JSON, // Array of file URLs
+    type: DataTypes.JSON, // Make sure this is JSON, not STRING/TEXT
     allowNull: true,
+    defaultValue: {},
+    get() {
+      const value = this.getDataValue('visuals');
+      // Ensure we always return an object
+      if (typeof value === 'string') {
+        try {
+          return JSON.parse(value);
+        } catch (e) {
+          return { images: [] };
+        }
+      }
+      return value || { images: [] };
+    }
   },
   publish_date: {
     type: DataTypes.DATE,

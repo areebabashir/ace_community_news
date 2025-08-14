@@ -29,8 +29,21 @@ const SportsNews = sequelize.define("SportsNews", {
     defaultValue: DataTypes.NOW,
   },
   visuals: {
-    type: DataTypes.JSON,
+    type: DataTypes.JSON, // Make sure this is JSON, not STRING/TEXT
     allowNull: true,
+    defaultValue: {},
+    get() {
+      const value = this.getDataValue('visuals');
+      // Ensure we always return an object
+      if (typeof value === 'string') {
+        try {
+          return JSON.parse(value);
+        } catch (e) {
+          return { images: [] };
+        }
+      }
+      return value || { images: [] };
+    }
   },
 }, {
   tableName: "sports_news_cache",

@@ -14,7 +14,7 @@ const router = express.Router();
 router.post("/create", uploadSportsNewsVisuals, createSportsNews);
 router.get("/get", getAllSportsNews);
 router.get("/get/:id", getSportsNewsById);
-router.put("/put/:id",uploadSportsNewsVisuals, updateSportsNews);
+router.put("/update/:id",uploadSportsNewsVisuals, updateSportsNews);
 router.delete("/delete/:id", deleteSportsNews);
 
 export default router;

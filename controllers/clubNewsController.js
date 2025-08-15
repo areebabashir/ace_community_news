@@ -305,3 +305,13 @@ export const rejectNews = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+
+export const getRejectedNews = async (req, res) => {
+  try {
+    const news = await ClubNews.findAll({ where: { status: "rejected" }, order: [["createdAt", "DESC"]] });
+    res.json(news);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

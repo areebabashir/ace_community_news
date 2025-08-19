@@ -7,6 +7,7 @@ import sportsNewsRoutes from "./routes/sportsNewsRoutes.js";
 import announcementRoutes from "./routes/announcementRoutes.js";
 import clubNewsRoutes from "./routes/clubNewsRoute.js";
 import tutorialRoutes from "./routes/tutorialRoutes.js";
+import requireUserType from "./middlewares/auth.js";
 import path from "path";
 import { fileURLToPath } from "url";
 

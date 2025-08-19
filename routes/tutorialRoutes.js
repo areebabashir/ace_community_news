@@ -7,13 +7,14 @@ import {
   deleteTutorial,
 } from "../controllers/tutorialController.js";
 import { uploadTutorialVisuals } from "../middlewares/uploads.js";
+import requireUserType from "../middlewares/auth.js";
 
 const router = express.Router();
 
-router.post("/", uploadTutorialVisuals, createTutorial); // Create
+router.post("/",requireUserType("system_admin"), uploadTutorialVisuals, createTutorial); // Create
 router.get("/", getAllTutorials); // Read all
 router.get("/:id", getTutorialById); // Read by ID
-router.put("/:id", uploadTutorialVisuals, updateTutorial); // Update
-router.delete("/:id", deleteTutorial); // Delete
+router.put("/:id",requireUserType("system_admin"), uploadTutorialVisuals, updateTutorial); // Update
+router.delete("/:id",requireUserType("system_admin"), deleteTutorial); // Delete
 
 export default router;

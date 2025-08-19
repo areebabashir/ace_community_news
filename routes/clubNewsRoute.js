@@ -13,18 +13,19 @@ import {
   getNewsById
 } from "../controllers/clubNewsController.js";
 import { uploadClubNewsVisuals } from "../middlewares/uploads.js";
+import requireUserType from "../middlewares/auth.js";
 
 const router = express.Router();
 
-router.post("/create",uploadClubNewsVisuals, createNews);
+router.post("/create",requireUserType("club"),uploadClubNewsVisuals, createNews);
 router.get("/drafts", getDraftNews);
 router.get("/published", getPublishedNews);
 router.get("/pending", getPendingNews);
 router.get("/rejected", getRejectedNews);
 router.get("/:id", getNewsById);
-router.put("/update/:id", uploadClubNewsVisuals,updateNews);
-router.post("/submit/:id", submitForApproval);
-router.post("/approve/:id", approveNews);
-router.post("/reject/:id", rejectNews);
+router.put("/update/:id",requireUserType("club"), uploadClubNewsVisuals,updateNews);
+router.post("/submit/:id",requireUserType("club"), submitForApproval);
+router.post("/approve/:id",requireUserType("system_admin"), approveNews);
+router.post("/reject/:id",requireUserType("system_admin"), rejectNews);
 
 export default router;

@@ -23,15 +23,17 @@ const SportsNews = sequelize.define("SportsNews", {
   published_at: {
     type: DataTypes.DATE,
     allowNull: true,
+    indexes: true,
   },
   cached_at: {
     type: DataTypes.DATE,
+    allowNull: false,
     defaultValue: DataTypes.NOW,
+    indexes: true,
   },
   visuals: {
-    type: DataTypes.JSON, // Make sure this is JSON, not STRING/TEXT
+    type: DataTypes.JSON,
     allowNull: true,
-    defaultValue: {},
     get() {
       const value = this.getDataValue('visuals');
       // Ensure we always return an object
@@ -44,6 +46,15 @@ const SportsNews = sequelize.define("SportsNews", {
       }
       return value || { images: [] };
     }
+  },
+  category: {
+    type: DataTypes.ENUM('padel', 'tennis', 'pickleball', 'football', 'basketball'),
+    allowNull: true,
+  },
+  approved: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
   },
 }, {
   tableName: "sports_news_cache",

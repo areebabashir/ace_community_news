@@ -1,4 +1,9 @@
 import SportsNews from "../Models/sportsNewsModel.js";
+import { scrapePadelNews as scrapePadelFromUtils } from "../utils/padelscraper.js";
+import { scrapeTennisGazetteNews as scrapeTennisFromUtils } from "../utils/tennisscraper.js";
+import { scrapeDinkNews as scrapePickleballFromUtils } from "../utils/pickleballscraper.js";
+import { scrapeGuardianNewsArticles as scrapeFootballFromUtils } from "../utils/footballscraper.js";
+import { scrapeCbsNbaNewsArticles as scrapeBasketballFromUtils } from "../utils/basketballscraper.js";
 
 // CREATE
 export async function createSportsNews(req, res) {
@@ -242,5 +247,130 @@ export async function deleteSportsNews(req, res) {
     res.json({ message: "Sports news deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+}
+
+// SCRAPE PADEL NEWS
+export async function scrapePadelNews(req, res) {
+  try {
+    // Use the existing scraping code from utils
+    // Set saveToJson to false and saveToSql to true to save to database instead of JSON
+    const result = await scrapePadelFromUtils(false, true, SportsNews);
+
+    res.json({
+      message: `Successfully scraped ${result.scraped} articles, saved ${result.sql.savedNews.length} new articles`,
+      scraped: result.scraped,
+      saved: result.sql.savedNews.length,
+      skipped: result.sql.skippedNews.length,
+      news: result.sql.savedNews,
+      skipped_titles: result.sql.skippedNews
+    });
+
+  } catch (error) {
+    console.error('Error in scrapePadelNews:', error);
+    res.status(500).json({ 
+      error: error.message || "Failed to scrape padel news",
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+}
+
+// SCRAPE TENNIS NEWS
+export async function scrapeTennisNews(req, res) {
+  try {
+    // Use the existing tennis scraping code from utils
+    // Set saveToJson to false and saveToSql to true to save to database instead of JSON
+    const result = await scrapeTennisFromUtils(false, true, SportsNews);
+
+    res.json({
+      message: `Successfully scraped ${result.scraped} articles, saved ${result.sql.savedNews.length} new articles`,
+      scraped: result.scraped,
+      saved: result.sql.savedNews.length,
+      skipped: result.sql.skippedNews.length,
+      news: result.sql.savedNews,
+      skipped_titles: result.sql.skippedNews
+    });
+
+  } catch (error) {
+    console.error('Error in scrapeTennisNews:', error);
+    res.status(500).json({ 
+      error: error.message || "Failed to scrape tennis news",
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+}
+
+// SCRAPE PICKLEBALL NEWS
+export async function scrapePickleballNews(req, res) {
+  try {
+    // Use the existing pickleball scraping code from utils
+    // Set saveToJson to false and saveToSql to true to save to database instead of JSON
+    const result = await scrapePickleballFromUtils(false, true, SportsNews);
+
+    res.json({
+      message: `Successfully scraped ${result.scraped} articles, saved ${result.sql.savedNews.length} new articles`,
+      scraped: result.scraped,
+      saved: result.sql.savedNews.length,
+      skipped: result.sql.skippedNews.length,
+      news: result.sql.savedNews,
+      skipped_titles: result.sql.skippedNews
+    });
+
+  } catch (error) {
+    console.error('Error in scrapePickleballNews:', error);
+    res.status(500).json({ 
+      error: error.message || "Failed to scrape pickleball news",
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+}
+
+// SCRAPE FOOTBALL NEWS
+export async function scrapeFootballNews(req, res) {
+  try {
+    // Use the existing football scraping code from utils
+    // Set saveToJson to false and saveToSql to true to save to database instead of JSON
+    const result = await scrapeFootballFromUtils(false, true, SportsNews);
+
+    res.json({
+      message: `Successfully scraped ${result.scraped} articles, saved ${result.sql.savedNews.length} new articles`,
+      scraped: result.scraped,
+      saved: result.sql.savedNews.length,
+      skipped: result.sql.skippedNews.length,
+      news: result.sql.savedNews,
+      skipped_titles: result.sql.skippedNews
+    });
+
+  } catch (error) {
+    console.error('Error in scrapeFootballNews:', error);
+    res.status(500).json({ 
+      error: error.message || "Failed to scrape football news",
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+}
+
+// SCRAPE BASKETBALL NEWS
+export async function scrapeBasketballNews(req, res) {
+  try {
+    // Use the existing basketball scraping code from utils
+    // Set saveToJson to false and saveToSql to true to save to database instead of JSON
+    const result = await scrapeBasketballFromUtils(false, true, SportsNews);
+
+    res.json({
+      message: `Successfully scraped ${result.scraped} articles, saved ${result.sql.savedNews.length} new articles`,
+      scraped: result.scraped,
+      saved: result.sql.savedNews.length,
+      skipped: result.sql.skippedNews.length,
+      news: result.sql.savedNews,
+      skipped_titles: result.sql.skippedNews
+    });
+
+  } catch (error) {
+    console.error('Error in scrapeBasketballNews:', error);
+    res.status(500).json({ 
+      error: error.message || "Failed to scrape basketball news",
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 }

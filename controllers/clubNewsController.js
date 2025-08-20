@@ -46,8 +46,9 @@ export const getPublishedNews = async (req, res) => {
 };
 export const getDraftNews = async (req, res) => {
   try {
-    console.log("getting draft")
-    const news = await ClubNews.findAll({ where: { status: "draft" } });
+    const clubId = req.params.clubId;
+    const where = clubId ? { status: "draft", club_id: clubId } : { status: "draft" };
+    const news = await ClubNews.findAll({ where, order: [["createdAt", "DESC"]] });
     res.json(news);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -307,9 +308,25 @@ export const rejectNews = async (req, res) => {
 };
 
 
+// Get News by Club ID
+export const getPublishedClubNews = async (req, res) => {
+  try {
+    const clubId = req.params.clubId;
+    const news = await ClubNews.findAll({ 
+      where: { club_id: clubId , status: "published" },
+      order: [["createdAt", "DESC"]]
+    });
+    res.json(news);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export const getRejectedNews = async (req, res) => {
   try {
-    const news = await ClubNews.findAll({ where: { status: "rejected" }, order: [["createdAt", "DESC"]] });
+    const clubId = req.params.clubId;
+    const where = clubId ? { status: "rejected", club_id: clubId } : { status: "rejected" };
+    const news = await ClubNews.findAll({ where, order: [["createdAt", "DESC"]] });
     res.json(news);
   } catch (error) {
     res.status(500).json({ error: error.message });

@@ -40,8 +40,61 @@ export async function createSportsNews(req, res) {
 // READ ALL
 export async function getAllSportsNews(req, res) {
   try {
-    const rows = await SportsNews.findAll({ order: [["published_at", "DESC"]] });
+    const { approved } = req.query;
+    const where = {};
+    
+    if (approved !== undefined) {
+      where.approved = approved === 'true';
+    }
+    
+    const rows = await SportsNews.findAll({ 
+      where,
+      order: [["published_at", "DESC"]] 
+    });
     res.json(rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
+// Get unapproved sports news
+export async function getUnapprovedSportsNews(req, res) {
+  try {
+    const news = await SportsNews.findAll({
+      where: { approved: false },
+      order: [["published_at", "DESC"]]
+    });
+    res.json(news);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
+// Get approved sports news
+export async function getApprovedSportsNews(req, res) {
+  try {
+    const news = await SportsNews.findAll({
+      where: { approved: true },
+      order: [["published_at", "DESC"]]
+    });
+    res.json(news);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
+// Approve sports news
+export async function approveSportsNews(req, res) {
+  try {
+    const id = req.params.id;
+    const news = await SportsNews.findByPk(id);
+
+    if (!news) {
+      return res.status(404).json({ message: "Sports news not found" });
+    }
+
+    await news.update({ approved: true });
+    res.json({ message: "Sports news approved successfully", news });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

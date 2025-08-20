@@ -6,10 +6,12 @@ import axios from "axios";
  */
 function requireUserType(requiredType) {
   return async (req, res, next) => {
+    console.log("requiredType", requiredType);
     try {
       // 1. Extract token from request headers
       const authHeader = req.headers["authorization"];
       if (!authHeader) {
+        // console.log("authHeader", authHeader);
         return res.status(401).json({ error: "Missing Authorization header" });
       }
 
@@ -29,9 +31,11 @@ function requireUserType(requiredType) {
           },
         }
       );
+      // console.log("response", response);
 
       // hosted backend returns { code, message, data: { user fields... } }
       const user = response.data?.data;
+      console.log("user", user);
 
       if (!user) {
         return res.status(500).json({ error: "Invalid response from auth server" });

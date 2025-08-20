@@ -14,9 +14,12 @@ async function scrapeArticle(url) {
 
     // Images
     const images = [];
-    const featuredImage = $(".featured-image img").attr("src");
-    featuredImage ="https://www.thedinkpickleball.com" + featuredImage
+    let featuredImage = $(".featured-image img").attr("src");
     if (featuredImage) {
+      // Only prepend base URL if the image path is relative
+      if (!featuredImage.startsWith('http')) {
+        featuredImage = "https://www.thedinkpickleball.com" + featuredImage;
+      }
       images.push(featuredImage);
     }
 
@@ -43,7 +46,7 @@ async function scrapeArticle(url) {
       },
       category: "pickleball",
       approved: false,
-      url: url // Keeping URL for reference
+      // url: url // Keeping URL for reference
     };
   } catch (error) {
     console.error(`❌ Error scraping article ${url}:`, error.message);

@@ -13,6 +13,10 @@ const ClubNews = sequelize.define("ClubNews", {
     type: DataTypes.BIGINT.UNSIGNED,
     allowNull: false,
   },
+  club_name: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
   created_by_role: {
     type: DataTypes.ENUM("Admin", "Subadmin"),
     allowNull: false,

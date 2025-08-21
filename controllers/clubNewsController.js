@@ -1,11 +1,35 @@
 // controllers/clubNewsController.js
 import { log } from "console";
 import ClubNews from "../Models/ClubNewsModel.js";
+import { Op } from "sequelize";
 
 // Create or Save Draft
 export const createNews = async (req, res) => {
   try {
     const data = req.body;
+    const clubId = data.club_id;
+
+    // Check monthly news creation limit
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const endOfMonth = new Date(startOfMonth);
+    endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+
+    const newsCount = await ClubNews.count({
+      where: {
+        club_id: clubId,
+        createdAt: {
+          [Op.gte]: startOfMonth,
+          [Op.lt]: endOfMonth,
+        },
+      },
+    });
+
+    if (newsCount >= 3) {
+      return res.status(403).json({ error: "You have reached the monthly limit of 3 news articles." });
+    }
 
     // Build visuals data from uploaded files
     const visuals = {};
@@ -280,6 +304,30 @@ export const approveNews = async (req, res) => {
       return res.status(400).json({ message: "Only pending news can be approved" });
     }
 
+    // Check monthly news creation limit before approving
+    const clubId = news.club_id;
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const endOfMonth = new Date(startOfMonth);
+    endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+
+    const newsCount = await ClubNews.count({
+      where: {
+        club_id: clubId,
+        status: 'published',
+        createdAt: {
+          [Op.gte]: startOfMonth,
+          [Op.lt]: endOfMonth,
+        },
+      },
+    });
+
+    if (newsCount >= 3) {
+      return res.status(403).json({ error: "This club has already reached the monthly limit of 3 published news articles." });
+    }
+
     await news.update({ status: "published" });
     res.json({ message: "News approved and published" });
   } catch (error) {
@@ -328,6 +376,35 @@ export const getRejectedNews = async (req, res) => {
     const where = clubId ? { status: "rejected", club_id: clubId } : { status: "rejected" };
     const news = await ClubNews.findAll({ where, order: [["createdAt", "DESC"]] });
     res.json(news);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Get the number of news articles created by a club in the current month
+export const getNewsCountThisMonth = async (req, res) => {
+  try {
+    const { clubId } = req.params;
+
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const endOfMonth = new Date(startOfMonth);
+    endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+
+    const newsCount = await ClubNews.count({
+      where: {
+        club_id: clubId,
+        status: 'published',
+        createdAt: {
+          [Op.gte]: startOfMonth,
+          [Op.lt]: endOfMonth,
+        },
+      },
+    });
+
+    res.status(200).json({ count: newsCount });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

@@ -104,4 +104,5 @@ const handleUpload = (folderName) => {
 export const uploadClubNewsVisuals = handleUpload("club_news");
 export const uploadAnnouncementVisuals = handleUpload("announcements");
 export const uploadSportsNewsVisuals = handleUpload("sports_news");
-export const uploadTutorialVisuals = handleUpload("tutorials");
+export const uploadTutorialVisuals = handleUpload("tutorials"); 
+export const uploadAdsVisuals = handleUpload("ads");

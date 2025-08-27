@@ -8,6 +8,7 @@ import announcementRoutes from "./routes/announcementRoutes.js";
 import clubNewsRoutes from "./routes/clubNewsRoute.js";
 import tutorialRoutes from "./routes/tutorialRoutes.js";
 import requireUserType from "./middlewares/auth.js";
+import adRoutes from "./routes/adRoutes.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -44,7 +45,8 @@ app.use("/sports-news", sportsNewsRoutes);
 app.use("/announcements", announcementRoutes);
 app.use("/club-news", clubNewsRoutes);
 app.use("/tutorials", tutorialRoutes);
-// Add this route temporarily
+app.use("/ads", adRoutes);
+// Add this route temporarily 
 app.post('/api/standardize-visuals', async (req, res) => {
   try {
     const allNews = await ClubNews.findAll();

@@ -9,6 +9,7 @@ import clubNewsRoutes from "./routes/clubNewsRoute.js";
 import tutorialRoutes from "./routes/tutorialRoutes.js";
 import requireUserType from "./middlewares/auth.js";
 import adRoutes from "./routes/adRoutes.js";
+import feedbackRoutes from "./routes/feedbackRoutes.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -46,6 +47,7 @@ app.use("/announcements", announcementRoutes);
 app.use("/club-news", clubNewsRoutes);
 app.use("/tutorials", tutorialRoutes);
 app.use("/ads", adRoutes);
+app.use("/feedback", feedbackRoutes);
 // Add this route temporarily 
 app.post('/api/standardize-visuals', async (req, res) => {
   try {

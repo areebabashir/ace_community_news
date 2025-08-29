@@ -8,7 +8,8 @@ import {
   updateAd,
   submitAdForApproval,
   approveAd,
-  rejectAd
+  rejectAd,
+  activateAd
 } from "../controllers/adController.js";
 import { uploadAdsVisuals } from "../middlewares/uploads.js";
 
@@ -34,6 +35,7 @@ router.put('/update/:id', uploadAdsVisuals, updateAd);
 router.post('/:id/submit', submitAdForApproval); // DRAFT -> PENDING_APPROVAL
 router.post('/:id/approve', approveAd); // PENDING_APPROVAL -> APPROVED
 router.post('/:id/reject', rejectAd); // PENDING_APPROVAL -> REJECTED
+router.post('/:id/activate', activateAd); // APPROVED -> ACTIVE (adjust start_date if needed)
 
 // module.exports = router;
 

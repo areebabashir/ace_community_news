@@ -10,6 +10,7 @@ const createAd = async (req, res) => {
     const ad_name = req.body.ad_name;
     const ad_type = req.body.ad_type; // APP_BANNER | WEBSITE_BANNER | CLUB_LISTING
     const branchname = req.body.branchname || null;
+    const client_id = req.body.client_id ? parseInt(req.body.client_id) : undefined;
     const start_date = req.body.start_date; // YYYY-MM-DD
     const duration_days = req.body.duration_days ? parseInt(req.body.duration_days) : undefined;
     const price_per_day = req.body.price_per_day ? parseFloat(req.body.price_per_day) : undefined;
@@ -21,7 +22,7 @@ const createAd = async (req, res) => {
       : null;
 
     // Basic validation
-    if (!club_id || !ad_name || !ad_type || !start_date || !duration_days || !price_per_day || !payment_method) {
+    if ((!club_id && !client_id) || !ad_name || !ad_type || !start_date || !duration_days || !price_per_day || !payment_method) {
       return res.status(400).json({
         success: false,
         message: 'Missing required fields'
@@ -34,6 +35,7 @@ const createAd = async (req, res) => {
       ad_name,
       ad_type,
       branchname,
+      client_id,
       start_date,
       duration_days,
       price_per_day,
@@ -287,6 +289,8 @@ const updateAd = async (req, res) => {
     if (req.body.payment_method !== undefined) updates.payment_method = req.body.payment_method;
     if (req.body.payment_status !== undefined) updates.payment_status = req.body.payment_status;
     if (req.body.listing_position !== undefined) updates.listing_position = coerceInt(req.body.listing_position);
+    if (req.body.branchname !== undefined) updates.branchname = req.body.branchname;
+    if (req.body.client_id !== undefined) updates.client_id = coerceInt(req.body.client_id);
 
     await ad.update(updates);
 
@@ -356,4 +360,30 @@ const rejectAd = async (req, res) => {
   }
 };
 
-export { createAd, getAds, getAdById, getAdsByClub, updateAd, submitAdForApproval, approveAd, rejectAd };
+// Transition: APPROVED -> ACTIVE (optionally adjust start_date to today if in future)
+const activateAd = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const ad = await Ad.findByPk(id);
+    if (!ad) return res.status(404).json({ success: false, message: 'Ad not found' });
+    if (ad.status !== 'APPROVED') {
+      return res.status(400).json({ success: false, message: 'Only APPROVED ads can be activated' });
+    }
+
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    let updates = { status: 'ACTIVE' };
+    // If start_date is in the future, set start_date to today
+    if (ad.start_date && new Date(ad.start_date) > today) {
+      updates.start_date = todayStr;
+    }
+
+    await ad.update(updates);
+    return res.json({ success: true, message: 'Ad activated', data: ad });
+  } catch (error) {
+    console.error('Error activating ad:', error);
+    return res.status(500).json({ success: false, message: 'Error activating ad', error: error.message });
+  }
+};
+
+export { createAd, getAds, getAdById, getAdsByClub, updateAd, submitAdForApproval, approveAd, rejectAd, activateAd };

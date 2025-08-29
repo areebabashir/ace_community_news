@@ -10,7 +10,13 @@ const Ad = sequelize.define('Ad', {
   },
   club_id: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: true,
+    defaultValue: null
+  },
+  client_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    defaultValue: null
   },
   ad_name: {
     type: DataTypes.STRING(255),
@@ -45,7 +51,7 @@ const Ad = sequelize.define('Ad', {
     allowNull: false
   },
   payment_method: {
-    type: DataTypes.ENUM('CARD', 'CASH'),
+    type: DataTypes.ENUM('CARD', 'CASH', 'PAYMENT_LINK', 'OUTSIDE_CMS'),
     allowNull: false
   },
   payment_status: {
@@ -74,6 +80,12 @@ const Ad = sequelize.define('Ad', {
   createdAt: 'created_at',
   updatedAt: 'updated_at',
   hooks: {
+    // make status active if status is approved and start_date is in the past and end_date is in the future
+    beforeCreate: (ad) => {
+      if (ad.status === 'APPROVED' && ad.start_date < new Date() && ad.end_date > new Date()) {
+        ad.status = 'ACTIVE';
+      }
+    },
     beforeValidate: (ad) => {
       // Calculate end_date if start_date and duration_days are provided
       if (ad.start_date && ad.duration_days) {

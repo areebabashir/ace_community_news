@@ -11,6 +11,9 @@ import requireUserType from "./middlewares/auth.js";
 import adRoutes from "./routes/adRoutes.js";
 import path from "path";
 import { fileURLToPath } from "url";
+import cron from "node-cron";
+import Ad from "./Models/AdModel.js";
+import { Op } from "sequelize";
 
 dotenv.config();
 
@@ -98,3 +101,43 @@ app.post('/api/standardize-visuals', async (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+// Cron: every 30 minutes, activate or expire ads based on dates
+cron.schedule("*/1 * * * *", async () => {
+  console.log("Cron job started");
+  try {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const todayStr = `${yyyy}-${mm}-${dd}`; // YYYY-MM-DD
+
+    // Activate APPROVED ads whose window includes today
+    
+    await Ad.update(
+      { status: 'ACTIVE' },
+      {
+        where: {
+          status: 'APPROVED',
+          start_date: { [Op.lte]: todayStr },
+          end_date: { [Op.gte]: todayStr }
+        }
+      }
+    );
+
+    // Expire ACTIVE or APPROVED ads whose end_date is in the past
+    await Ad.update(
+      { status: 'EXPIRED' },
+      {
+        where: {
+          status: ['APPROVED', 'ACTIVE'],
+          end_date: { [Op.lt]: todayStr }
+        }
+      }
+    );
+
+    console.log(`[CRON] Ads status reconciled @ ${new Date().toISOString()}`);
+  } catch (err) {
+    console.error('[CRON] Error reconciling ads status:', err);
+  }
+});

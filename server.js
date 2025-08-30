@@ -10,6 +10,8 @@ import tutorialRoutes from "./routes/tutorialRoutes.js";
 import requireUserType from "./middlewares/auth.js";
 import adRoutes from "./routes/adRoutes.js";
 import feedbackRoutes from "./routes/feedbackRoutes.js";
+import scheduleRoutes from "./routes/scheduleRoutes.js";
+import contactRoutes from "./routes/contactRoutes.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -21,8 +23,26 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// CORS Configuration
+const corsOptions = {
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:5176',
+    'http://localhost:3001',
+    'https://rationally-endless-mammal.ngrok-free.app',
+    'https://acecommunity.me',
+    'https://www.acecommunity.me'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'ngrok-skip-browser-warning'],
+  optionsSuccessStatus: 200
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Serve static files from uploads folder
@@ -48,6 +68,8 @@ app.use("/club-news", clubNewsRoutes);
 app.use("/tutorials", tutorialRoutes);
 app.use("/ads", adRoutes);
 app.use("/feedback", feedbackRoutes);
+app.use("/schedule", scheduleRoutes);
+app.use("/contact", contactRoutes);
 // Add this route temporarily 
 app.post('/api/standardize-visuals', async (req, res) => {
   try {

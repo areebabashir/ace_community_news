@@ -1,10 +1,10 @@
 import Feedback from "../Models/FeedbackModel.js";
 import nodemailer from "nodemailer";
-import { getClubAdminApprovedTemplate } from "../utils/emailTemplates.js";
+import { getFeedbackTemplate } from "../utils/emailTemplates.js";
 
 export const createFeedback = async (req, res) => {
   try {
-    const { name, role, club, feedback } = req.body;
+    const { name, email, role, club, feedback } = req.body;
 
     if (!name || !feedback) {
       return res.status(400).json({ success: false, error: "name and feedback are required" });
@@ -12,6 +12,7 @@ export const createFeedback = async (req, res) => {
 
     const created = await Feedback.create({
       name,
+      email: email || null,
       role: role || null,
       club: club || null,
       feedback_text: feedback,
@@ -33,15 +34,14 @@ export const createFeedback = async (req, res) => {
 
       const adminEmail = process.env.ADMIN_EMAIL;
       if (adminEmail) {
-        const html = getClubAdminApprovedTemplate({
-          adminFirstName: "Admin",
-          clubName: club || "Club",
-          feedbackText: feedback,
-        });
+        const html = getFeedbackTemplate({ name, email, role, feedback });
         await transporter.sendMail({
-          from: process.env.SMTP_USER,
+          from: email ? `${name} <${email}>` : process.env.SMTP_USER,
+          sender: process.env.SMTP_USER,
+          envelope: { from: process.env.SMTP_USER, to: adminEmail },
           to: adminEmail,
-          subject: "New Feedback Submitted",
+          replyTo: email ? `${name} <${email}>` : undefined,
+          subject: "New Website Feedback",
           html,
         });
       }
@@ -62,6 +62,29 @@ export const listFeedback = async (req, res) => {
     return res.json({ success: true, data: list });
   } catch (err) {
     console.error("listFeedback error:", err.message);
+    return res.status(500).json({ success: false, error: "Internal server error" });
+  }
+};
+
+export const deleteFeedback = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (!id) {
+      return res.status(400).json({ success: false, error: "Feedback ID is required" });
+    }
+
+    const feedback = await Feedback.findByPk(id);
+    
+    if (!feedback) {
+      return res.status(404).json({ success: false, error: "Feedback not found" });
+    }
+
+    await feedback.destroy();
+    
+    return res.json({ success: true, message: "Feedback deleted successfully" });
+  } catch (err) {
+    console.error("deleteFeedback error:", err.message);
     return res.status(500).json({ success: false, error: "Internal server error" });
   }
 };

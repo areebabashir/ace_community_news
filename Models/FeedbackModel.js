@@ -13,6 +13,10 @@ const Feedback = sequelize.define(
       type: DataTypes.STRING(150),
       allowNull: false,
     },
+    email: {
+      type: DataTypes.STRING(180),
+      allowNull: true,
+    },
     role: {
       type: DataTypes.STRING(50),
       allowNull: true,

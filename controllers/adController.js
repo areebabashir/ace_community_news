@@ -29,6 +29,71 @@ const createAd = async (req, res) => {
       });
     }
 
+    // Conflict checks:
+    // CLUB_LISTING -> same listing_position; BANNERS -> same ad_type global exclusivity
+    if (ad_type === 'CLUB_LISTING' && listing_position) {
+      try {
+        const startDateObj = new Date(start_date);
+        const endDateObj = new Date(startDateObj);
+        endDateObj.setDate(startDateObj.getDate() + duration_days);
+        const proposedEnd = endDateObj.toISOString().split('T')[0];
+
+        const conflict = await Ad.findOne({
+          where: {
+            status: { [Op.or]: ['APPROVED', 'ACTIVE'] },
+            ad_type: 'CLUB_LISTING',
+            listing_position: listing_position,
+            start_date: { [Op.lte]: proposedEnd },
+            end_date: { [Op.gte]: start_date }
+          },
+          attributes: ['id', 'start_date', 'end_date', 'listing_position']
+        });
+
+        if (conflict) {
+          return res.status(409).json({
+            success: false,
+            message: 'Time slot already occupied for this listing position',
+            conflict: {
+              listing_position: conflict.listing_position,
+              start_date: conflict.start_date,
+              end_date: conflict.end_date
+            }
+          });
+        }
+      } catch (e) {
+        // fall through if date parsing fails; creation will error later
+      }
+    }
+    if (ad_type === 'APP_BANNER' || ad_type === 'WEBSITE_BANNER') {
+      try {
+        const startDateObj = new Date(start_date);
+        const endDateObj = new Date(startDateObj);
+        endDateObj.setDate(startDateObj.getDate() + duration_days);
+        const proposedEnd = endDateObj.toISOString().split('T')[0];
+
+        const conflict = await Ad.findOne({
+          where: {
+            status: { [Op.or]: ['APPROVED', 'ACTIVE'] },
+            ad_type: ad_type,
+            start_date: { [Op.lte]: proposedEnd },
+            end_date: { [Op.gte]: start_date }
+          },
+          attributes: ['id', 'start_date', 'end_date']
+        });
+
+        if (conflict) {
+          return res.status(409).json({
+            success: false,
+            message: `Time slot already occupied for ${ad_type} ads`,
+            conflict: {
+              start_date: conflict.start_date,
+              end_date: conflict.end_date
+            }
+          });
+        }
+      } catch (e) {}
+    }
+
     // Create the ad
     const ad = await Ad.create({
       club_id,
@@ -86,7 +151,7 @@ const createAd = async (req, res) => {
     // Video → single (optional)
     if (videoFiles[0]) {
       assetRecords.push({
-        ad_id: ad.id,
+          ad_id: ad.id,
         file_url: normalizePath(videoFiles[0].path),
         width: Number.isFinite(videoWidth) ? videoWidth : 0,
         height: Number.isFinite(videoHeight) ? videoHeight : 0
@@ -226,13 +291,15 @@ const getAdsByClub = async (req, res) => {
     const {
       page = 1,
       limit = 10,
-      status
+      status,
+      ad_type
     } = req.query;
 
     const offset = (page - 1) * limit;
     const whereClause = { club_id };
 
     if (status) whereClause.status = status;
+    if (ad_type) whereClause.ad_type = ad_type;
 
     const { count, rows: ads } = await Ad.findAndCountAll({
       where: whereClause,
@@ -334,6 +401,71 @@ const approveAd = async (req, res) => {
     if (!ad) return res.status(404).json({ success: false, message: 'Ad not found' });
     if (ad.status !== 'PENDING_APPROVAL') {
       return res.status(400).json({ success: false, message: 'Only PENDING_APPROVAL ads can be approved' });
+    }
+    // For club listing, verify no conflict with existing APPROVED/ACTIVE ads on same position
+    if (ad.ad_type === 'CLUB_LISTING' && ad.listing_position) {
+      const proposedStart = ad.start_date;
+      // end_date should be present (computed by hooks on create); if not, compute
+      let proposedEnd = ad.end_date;
+      if (!proposedEnd && ad.start_date && ad.duration_days) {
+        const startDateObj = new Date(ad.start_date);
+        const endDateObj = new Date(startDateObj);
+        endDateObj.setDate(startDateObj.getDate() + ad.duration_days);
+        proposedEnd = endDateObj.toISOString().split('T')[0];
+      }
+
+      const conflict = await Ad.findOne({
+        where: {
+          status: { [Op.or]: ['APPROVED', 'ACTIVE'] },
+          ad_type: 'CLUB_LISTING',
+          listing_position: ad.listing_position,
+          start_date: { [Op.lte]: proposedEnd },
+          end_date: { [Op.gte]: proposedStart }
+        },
+        attributes: ['id', 'start_date', 'end_date', 'listing_position']
+      });
+    // For banners, verify exclusivity among same type for APPROVED/ACTIVE
+    if (ad.ad_type === 'APP_BANNER' || ad.ad_type === 'WEBSITE_BANNER') {
+      const proposedStart = ad.start_date;
+      let proposedEnd = ad.end_date;
+      if (!proposedEnd && ad.start_date && ad.duration_days) {
+        const startDateObj = new Date(ad.start_date);
+        const endDateObj = new Date(startDateObj);
+        endDateObj.setDate(startDateObj.getDate() + ad.duration_days);
+        proposedEnd = endDateObj.toISOString().split('T')[0];
+      }
+      const conflict = await Ad.findOne({
+        where: {
+          status: { [Op.or]: ['APPROVED', 'ACTIVE'] },
+          ad_type: ad.ad_type,
+          start_date: { [Op.lte]: proposedEnd },
+          end_date: { [Op.gte]: proposedStart }
+        },
+        attributes: ['id', 'start_date', 'end_date']
+      });
+      if (conflict) {
+        return res.status(409).json({
+          success: false,
+          message: `Time slot already occupied for ${ad.ad_type} ads`,
+          conflict: {
+            start_date: conflict.start_date,
+            end_date: conflict.end_date
+          }
+        });
+      }
+    }
+
+      if (conflict) {
+        return res.status(409).json({
+          success: false,
+          message: 'Time slot already occupied for this listing position',
+          conflict: {
+            listing_position: conflict.listing_position,
+            start_date: conflict.start_date,
+            end_date: conflict.end_date
+          }
+        });
+      }
     }
     await ad.update({ status: 'APPROVED' });
     return res.json({ success: true, message: 'Ad approved', data: ad });

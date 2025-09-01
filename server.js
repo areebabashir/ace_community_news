@@ -15,6 +15,8 @@ import { fileURLToPath } from "url";
 import cron from "node-cron";
 import Ad from "./Models/AdModel.js";
 import { Op } from "sequelize";
+import AdAsset from "./Models/AdAssetModel.js";
+
 
 dotenv.config();
 
@@ -50,6 +52,19 @@ app.use("/announcements", announcementRoutes);
 app.use("/club-news", clubNewsRoutes);
 app.use("/tutorials", tutorialRoutes);
 app.use("/ads", adRoutes);
+// Safe media proxy (avoid ad-blockers on 'ads' path)
+app.get('/media/asset/:id', async (req, res) => {
+  try {
+    const asset = await AdAsset.findByPk(req.params.id);
+    if (!asset || !asset.file_url) {
+      return res.status(404).send('File not found');
+    }
+    const filePath = path.join(__dirname, asset.file_url.replace(/^[\\/]+/, ''));
+    return res.sendFile(filePath);
+  } catch (e) {
+    return res.status(500).send('Failed to load file');
+  }
+});
 app.use("/feedback", feedbackRoutes);
 // Add this route temporarily 
 app.post('/api/standardize-visuals', async (req, res) => {

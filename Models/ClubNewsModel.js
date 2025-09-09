@@ -65,7 +65,7 @@ const ClubNews = sequelize.define("ClubNews", {
   },
 }, {
   tableName: "club_news",
-  timestamps: true,
+  timestamps: false,
 });
 
 export default ClubNews;

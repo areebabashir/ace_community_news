@@ -9,7 +9,8 @@ import {
   submitAdForApproval,
   approveAd,
   rejectAd,
-  activateAd
+  activateAd,
+  getActiveWebsiteBanners
 } from "../controllers/adController.js";
 import { uploadAdsVisuals } from "../middlewares/uploads.js";
 import { getPricing, upsertPricing } from "../controllers/adPricingController.js";
@@ -23,13 +24,16 @@ const router = express.Router();
 router.post('/create', uploadAdsVisuals, createAd);
 
 // Get all ads with optional filtering
-router.get('/get',requireUsertype("system_admin"), getAds);
+router.get('/get',requireUserType("system_admin"), getAds);
 
 // Get a specific ad by ID
 router.get('/get/:id', getAdById);
 
 // Get ads by club ID
 router.get('/get/clubs/:club_id', getAdsByClub);
+
+// Get active website banner ads for today
+router.get('/active-website-banners', getActiveWebsiteBanners);
 
 // Update ad (multipart/form-data optional)
 router.put('/update/:id', uploadAdsVisuals, updateAd);

@@ -1,4 +1,4 @@
-import Tutorial from "../models/tutorialModel.js";
+import Tutorial from "../Models/tutorialModel.js";
 
 // Create tutorial
 export const createTutorial = async (req, res) => {

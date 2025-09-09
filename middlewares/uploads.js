@@ -106,3 +106,4 @@ export const uploadAnnouncementVisuals = handleUpload("announcements");
 export const uploadSportsNewsVisuals = handleUpload("sports_news");
 export const uploadTutorialVisuals = handleUpload("tutorials"); 
 export const uploadAdsVisuals = handleUpload("ads");
+export const uploadProductVisuals = handleUpload("products");

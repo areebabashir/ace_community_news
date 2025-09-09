@@ -21,6 +21,22 @@ const createAd = async (req, res) => {
       ? parseInt(req.body.listing_position)
       : null;
 
+    // Helper function to parse array fields
+    const parseArrayField = (value) => {
+      if (!value) return [];
+      try {
+        // Accept JSON like "[300, 600]"
+        if (typeof value === 'string' && value.trim().startsWith('[')) {
+          return JSON.parse(value);
+        }
+      } catch (_) {}
+      // Fallback: comma-separated string "300,600"
+      if (typeof value === 'string') {
+        return value.split(',').map(v => v.trim()).filter(Boolean);
+      }
+      return Array.isArray(value) ? value : [];
+    };
+
     // Basic validation
     if ((!club_id && !client_id) || !ad_name || !ad_type || !start_date || !duration_days || !price_per_day || !payment_method) {
       return res.status(400).json({
@@ -94,6 +110,40 @@ const createAd = async (req, res) => {
       } catch (e) {}
     }
 
+    // Website banner image dimension validation
+    if (ad_type === 'WEBSITE_BANNER') {
+      const images = req.files?.images || [];
+      const imagesWidths = parseArrayField(req.body.images_widths).map(v => parseInt(v));
+      const imagesHeights = parseArrayField(req.body.images_heights).map(v => parseInt(v));
+
+      if (images.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Website banner ads require at least one image'
+        });
+      }
+
+      // Validate each image dimension
+      for (let i = 0; i < images.length; i++) {
+        const width = imagesWidths[i];
+        const height = imagesHeights[i];
+
+        if (!width || !height) {
+          return res.status(400).json({
+            success: false,
+            message: `Image ${i + 1}: Width and height dimensions are required for website banner ads`
+          });
+        }
+
+        if (width !== 1920 || height !== 1080) {
+          return res.status(400).json({
+            success: false,
+            message: `Image ${i + 1}: Website banner images must be exactly 1920px by 1080px. Current dimensions: ${width}x${height}px`
+          });
+        }
+      }
+    }
+
     // Create the ad
     const ad = await Ad.create({
       club_id,
@@ -112,20 +162,6 @@ const createAd = async (req, res) => {
 
     // Build assets from uploaded files (images[], video)
     const normalizePath = (p) => (p || '').replace(/\\/g, '/');
-    const parseArrayField = (value) => {
-      if (!value) return [];
-      try {
-        // Accept JSON like "[300, 600]"
-        if (typeof value === 'string' && value.trim().startsWith('[')) {
-          return JSON.parse(value);
-        }
-      } catch (_) {}
-      // Fallback: comma-separated string "300,600"
-      if (typeof value === 'string') {
-        return value.split(',').map(v => v.trim()).filter(Boolean);
-      }
-      return Array.isArray(value) ? value : [];
-    };
 
     const images = req.files?.images || [];
     const videoFiles = req.files?.video || [];
@@ -518,4 +554,41 @@ const activateAd = async (req, res) => {
   }
 };
 
-export { createAd, getAds, getAdById, getAdsByClub, updateAd, submitAdForApproval, approveAd, rejectAd, activateAd };
+// Get active website banner ads for today's date
+const getActiveWebsiteBanners = async (req, res) => {
+  try {
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+
+    const activeBanners = await Ad.findAll({
+      where: {
+        ad_type: 'WEBSITE_BANNER',
+        status: 'ACTIVE',
+        start_date: { [Op.lte]: todayStr },
+        end_date: { [Op.gte]: todayStr }
+      },
+      include: [{
+        model: AdAsset,
+        as: 'assets',
+        attributes: ['id', 'file_url', 'width', 'height', 'created_at']
+      }],
+      order: [['created_at', 'DESC']]
+    });
+
+    res.json({
+      success: true,
+      message: 'Active website banner ads retrieved successfully',
+      data: activeBanners,
+      date: todayStr
+    });
+  } catch (error) {
+    console.error('Error fetching active website banners:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching active website banners',
+      error: error.message
+    });
+  }
+};
+
+export { createAd, getAds, getAdById, getAdsByClub, updateAd, submitAdForApproval, approveAd, rejectAd, activateAd, getActiveWebsiteBanners };

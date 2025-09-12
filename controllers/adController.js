@@ -110,8 +110,8 @@ const createAd = async (req, res) => {
       } catch (e) {}
     }
 
-    // Website banner image dimension validation
-    if (ad_type === 'WEBSITE_BANNER') {
+    // Banner image dimension validation (both APP_BANNER and WEBSITE_BANNER)
+    if (ad_type === 'WEBSITE_BANNER' || ad_type === 'APP_BANNER') {
       const images = req.files?.images || [];
       const imagesWidths = parseArrayField(req.body.images_widths).map(v => parseInt(v));
       const imagesHeights = parseArrayField(req.body.images_heights).map(v => parseInt(v));
@@ -119,7 +119,7 @@ const createAd = async (req, res) => {
       if (images.length === 0) {
         return res.status(400).json({
           success: false,
-          message: 'Website banner ads require at least one image'
+          message: `${ad_type === 'APP_BANNER' ? 'App' : 'Website'} banner ads require at least one image`
         });
       }
 
@@ -131,14 +131,14 @@ const createAd = async (req, res) => {
         if (!width || !height) {
           return res.status(400).json({
             success: false,
-            message: `Image ${i + 1}: Width and height dimensions are required for website banner ads`
+            message: `Image ${i + 1}: Width and height dimensions are required for ${ad_type === 'APP_BANNER' ? 'app' : 'website'} banner ads`
           });
         }
 
         if (width !== 1920 || height !== 1080) {
           return res.status(400).json({
             success: false,
-            message: `Image ${i + 1}: Website banner images must be exactly 1920px by 1080px. Current dimensions: ${width}x${height}px`
+            message: `Image ${i + 1}: ${ad_type === 'APP_BANNER' ? 'App' : 'Website'} banner images must be exactly 1920px by 1080px. Current dimensions: ${width}x${height}px`
           });
         }
       }

@@ -6,6 +6,7 @@ import { Op } from "sequelize";
 // Create or Save Draft
 export const createNews = async (req, res) => {
   try {
+    console.log("createNews");
     const data = req.body;
     const clubId = data.club_id;
 
@@ -20,7 +21,8 @@ export const createNews = async (req, res) => {
     const newsCount = await ClubNews.count({
       where: {
         club_id: clubId,
-        createdAt: {
+        status: 'published',
+        created_at: {
           [Op.gte]: startOfMonth,
           [Op.lt]: endOfMonth,
         },
@@ -53,9 +55,19 @@ export const createNews = async (req, res) => {
 
     const news = await ClubNews.create(data);
 
-    res.status(201).json({ message: "News created", news });
+    res.status(201).json({ 
+      success: true, 
+      message: data.status === 'pending_approval' 
+        ? "News article created and submitted for approval successfully" 
+        : "News article saved as draft successfully", 
+      news 
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error creating news:", error);
+    res.status(500).json({ 
+      success: false, 
+      error: "Failed to create news article. Please try again." 
+    });
   }
 };
 
@@ -72,7 +84,7 @@ export const getDraftNews = async (req, res) => {
   try {
     const clubId = req.params.clubId;
     const where = clubId ? { status: "draft", club_id: clubId } : { status: "draft" };
-    const news = await ClubNews.findAll({ where, order: [["createdAt", "DESC"]] });
+    const news = await ClubNews.findAll({ where, order: [["created_at", "DESC"]] });
     res.json(news);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -82,7 +94,7 @@ export const getDraftNews = async (req, res) => {
 // Get Pending Approval News (for Super Admin)
 export const getPendingNews = async (req, res) => {
   try {
-    const news = await ClubNews.findAll({ where: { status: "pending_approval" }, order: [["createdAt", "DESC"]] });
+    const news = await ClubNews.findAll({ where: { status: "pending_approval" }, order: [["created_at", "DESC"]] });
     res.json(news);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -260,14 +272,16 @@ export const updateNews = async (req, res) => {
     };
 
     res.json({ 
-      message: "News updated successfully",
+      success: true,
+      message: "News article updated successfully",
       news: responseData
     });
 
   } catch (error) {
     console.error('Error updating news:', error);
     res.status(500).json({ 
-      error: error.message || "Failed to update news",
+      success: false,
+      error: "Failed to update news article. Please try again.",
       details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
@@ -279,16 +293,33 @@ export const submitForApproval = async (req, res) => {
     const id = req.params.id;
     const news = await ClubNews.findByPk(id);
 
-    if (!news) return res.status(404).json({ message: "News not found" });
+    if (!news) {
+      return res.status(404).json({ 
+        success: false, 
+        error: "News article not found" 
+      });
+    }
 
     if (news.status !== "draft") {
-      return res.status(400).json({ message: "Only draft news can be submitted" });
+      return res.status(400).json({ 
+        success: false, 
+        error: "Only draft news articles can be submitted for approval" 
+      });
     }
 
     await news.update({ status: "pending_approval" });
-    res.json({ message: "News submitted for approval" });
+    
+    res.json({ 
+      success: true, 
+      message: "News article has been successfully submitted for approval",
+      data: news
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error submitting news for approval:", error);
+    res.status(500).json({ 
+      success: false, 
+      error: "Failed to submit news for approval. Please try again." 
+    });
   }
 };
 
@@ -317,7 +348,7 @@ export const approveNews = async (req, res) => {
       where: {
         club_id: clubId,
         status: 'published',
-        createdAt: {
+        created_at: {
           [Op.gte]: startOfMonth,
           [Op.lt]: endOfMonth,
         },
@@ -362,7 +393,7 @@ export const getPublishedClubNews = async (req, res) => {
     const clubId = req.params.clubId;
     const news = await ClubNews.findAll({ 
       where: { club_id: clubId , status: "published" },
-      order: [["createdAt", "DESC"]]
+      order: [["created_at", "DESC"]]
     });
     res.json(news);
   } catch (error) {
@@ -374,7 +405,7 @@ export const getRejectedNews = async (req, res) => {
   try {
     const clubId = req.params.clubId;
     const where = clubId ? { status: "rejected", club_id: clubId } : { status: "rejected" };
-    const news = await ClubNews.findAll({ where, order: [["createdAt", "DESC"]] });
+    const news = await ClubNews.findAll({ where, order: [["created_at", "DESC"]] });
     res.json(news);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -397,7 +428,7 @@ export const getNewsCountThisMonth = async (req, res) => {
       where: {
         club_id: clubId,
         status: 'published',
-        createdAt: {
+        created_at: {
           [Op.gte]: startOfMonth,
           [Op.lt]: endOfMonth,
         },

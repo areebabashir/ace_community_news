@@ -63,9 +63,21 @@ const ClubNews = sequelize.define("ClubNews", {
     type: DataTypes.TEXT,
     allowNull: true,
   },
+  created_at: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+    allowNull: false,
+  },
+  updated_at: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+    allowNull: false,
+  },
 }, {
   tableName: "club_news",
-  timestamps: false,
+  timestamps: true,
+  createdAt: 'created_at',
+  updatedAt: 'updated_at',
 });
 
 export default ClubNews;

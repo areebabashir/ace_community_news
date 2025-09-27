@@ -42,16 +42,23 @@ const corsOptions = {
     'http://localhost:3001',
     'https://rationally-endless-mammal.ngrok-free.app',
     'https://acecommunity.me',
-    'https://www.acecommunity.me'
+    'https://www.acecommunity.me',
+    'https://ace-website-jyrn.vercel.app' // 👈 add this
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'ngrok-skip-browser-warning'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'Accept',
+    'X-Requested-With',
+    'ngrok-skip-browser-warning'
+  ],
   optionsSuccessStatus: 200
 };
-
 // Middleware
 app.use(cors(corsOptions));
+
 app.use(express.json());
 
 // Serve static files from uploads folder

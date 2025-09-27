@@ -24,7 +24,7 @@ function requireUserType(requiredType) {
       // 2. Send token to hosted backend for validation
       console.log("Sending token to auth server..."); // Debug log
       const response = await axios.post(
-        "https://rationally-endless-mammal.ngrok-free.app/api/auth/users/show",
+          process.env.URL_FOR_VALIDATION,
         {}, // empty body because token is in header
         {
           headers: {

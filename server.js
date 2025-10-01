@@ -43,7 +43,10 @@ const corsOptions = {
     'https://rationally-endless-mammal.ngrok-free.app',
     'https://acecommunity.me',
     'https://www.acecommunity.me',
-    'https://ace-website-jyrn.vercel.app' // 👈 add this
+    'https://ace-website-jyrn.vercel.app',
+    'https://acecommunity.vercel.app' ,
+    'https://acecommunity-clubportals.vercel.app'// 👈 add this
+
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

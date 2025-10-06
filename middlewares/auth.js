@@ -2,11 +2,12 @@ import axios from "axios";
 
 /**
  * Middleware to validate user type.
- * @param {string} requiredType - The user_type that is allowed (e.g., "system_admin").
+ * @param {...string} requiredTypes - The user_type(s) that are allowed (e.g., "system_admin" or "club", "club_branch").
+ * Supports multiple user types with OR operator - user must have at least one of the specified types.
  */
-function requireUserType(requiredType) {
+function requireUserType(...requiredTypes) {
   return async (req, res, next) => {
-    console.log("requiredType", requiredType);
+    console.log("requiredTypes", requiredTypes);
     try {
       // 1. Extract token from request headers
       const authHeader = req.headers["authorization"];
@@ -43,17 +44,17 @@ function requireUserType(requiredType) {
         return res.status(500).json({ error: "Invalid response from auth server" });
       }
 
-      // 3. Check user_type
-      console.log("User type from token:", user.user_type, "Required:", requiredType); // Debug log
-      if (user.user_type !== requiredType) {
+      // 3. Check user_type - support multiple types with OR operator
+      console.log("User type from token:", user.user_type, "Required:", requiredTypes); // Debug log
+      if (!requiredTypes.includes(user.user_type)) {
         console.log("User type mismatch - returning 403"); // Debug log
         return res.status(403).json({ 
           error: "Forbidden: Wrong user type", 
           userType: user.user_type, 
-          requiredType: requiredType 
+          requiredTypes: requiredTypes 
         });
       }
-      console.log(user.user_type, requiredType);
+      console.log(user.user_type, requiredTypes);
 
       // 4. Attach user to req and continue
       req.user = user;

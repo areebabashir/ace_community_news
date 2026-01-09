@@ -45,7 +45,9 @@ const corsOptions = {
     'https://www.acecommunity.me',
     'https://ace-website-jyrn.vercel.app',
     'https://acecommunity.vercel.app' ,
-    'https://acecommunity-clubportals.vercel.app'// 👈 add this
+    'https://acecommunity-clubportals.vercel.app',// 👈 add this
+    'https://adminstaging.acecommunity.me',
+    'https://portalstaging.acecommunity.me'
 
   ],
   credentials: true,

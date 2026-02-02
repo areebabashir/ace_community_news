@@ -48,7 +48,7 @@ const corsOptions = {
     'https://acecommunity-clubportals.vercel.app',// 👈 add this
     'https://adminstaging.acecommunity.me',
     'https://portalstaging.acecommunity.me',
-    'https://sitestaging.acecommunity.me/'
+    'https://sitestaging.acecommunity.me'
 
   ],
   credentials: true,

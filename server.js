@@ -38,6 +38,7 @@ const corsOptions = {
     'http://localhost:3000',
     'http://localhost:5173',
     'http://localhost:5174',
+    'http://localhost:5175',
     'http://localhost:5176',
     'http://localhost:3001',
     'https://rationally-endless-mammal.ngrok-free.app',
@@ -47,7 +48,8 @@ const corsOptions = {
     'https://acecommunity.vercel.app' ,
     'https://acecommunity-clubportals.vercel.app',// 👈 add this
     'https://adminstaging.acecommunity.me',
-    'https://portalstaging.acecommunity.me'
+    'https://portalstaging.acecommunity.me',
+    'https://sitestaging.acecommunity.me'
 
   ],
   credentials: true,

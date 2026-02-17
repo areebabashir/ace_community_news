@@ -5,15 +5,35 @@ import {
   getAllAnnouncements,
   getAnnouncementById,
   updateAnnouncement,
-  deleteAnnouncement
+  deleteAnnouncement,
+  uploadAnnouncementVisualsOnly,
 } from "../controllers/announcementController.js";
 import requireUserType from "../middlewares/auth.js";
 import { uploadAnnouncementVisuals } from "../middlewares/uploads.js";
 
-
 const router = express.Router();
 
-router.post("/create",requireUserType("system_admin"),uploadAnnouncementVisuals ,createAnnouncement);
+// Upload visuals only (returns { images, video } for use in create body). Use before submit for progress UX.
+router.post(
+  "/upload-visuals",
+  requireUserType("system_admin"),
+  uploadAnnouncementVisuals,
+  uploadAnnouncementVisualsOnly
+);
+
+// Create: multipart (files) OR JSON (body.visuals from pre-upload). Multer only when multipart.
+const conditionalUpload = (req, res, next) => {
+  if (req.is("multipart/form-data")) {
+    return uploadAnnouncementVisuals(req, res, next);
+  }
+  next();
+};
+router.post(
+  "/create",
+  requireUserType("system_admin"),
+  conditionalUpload,
+  createAnnouncement
+);
 router.get("/get", getAllAnnouncements);
 router.get("/get/:id", getAnnouncementById);
 router.put("/update/:id",requireUserType("system_admin"), uploadAnnouncementVisuals,updateAnnouncement);

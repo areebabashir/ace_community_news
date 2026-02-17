@@ -22,7 +22,7 @@ router.post("/create", async (req, res) => {
 
     await transporter.sendMail({
       from: process.env.SMTP_USER,
-      to: process.env.ADMIN_EMAIL,
+      to: process.env.CONTACT_US_EMAIL,
       replyTo: `${name} <${email}>`,
       subject: `New Contact Form Submission: ${subject || 'General Inquiry'}`,
       html,

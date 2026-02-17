@@ -12,7 +12,9 @@ import {
   getRejectedNews,
   getNewsById,
   getPublishedClubNews,
-  getNewsCountThisMonth
+  getNewsCountThisMonth,
+  deleteNews,
+  deleteAllRejectedNews,
 } from "../controllers/clubNewsController.js";
 import { uploadClubNewsVisuals } from "../middlewares/uploads.js";
 import requireUserType from "../middlewares/auth.js";
@@ -27,6 +29,8 @@ router.get("/club/:clubId/news", requireUserType("club", "club_branch"), getPubl
 router.get("/pending", getPendingNews);
 router.get("/rejected", getRejectedNews);
 router.get("/club/:clubId/rejected", requireUserType("club", "club_branch"), getRejectedNews);
+router.delete("/club/:clubId/rejected", requireUserType("club", "club_branch"), deleteAllRejectedNews);
+router.delete("/:id", requireUserType("club", "club_branch"), deleteNews);
 router.get("/:id", getNewsById);
 router.get("/count/:clubId", requireUserType("club", "club_branch"), getNewsCountThisMonth);
 router.put("/update/:id",requireUserType("club", "club_branch"), uploadClubNewsVisuals,updateNews);

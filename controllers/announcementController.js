@@ -1,30 +1,54 @@
 // controllers/announcementController.js
 import Announcement from "../Models/announcementModel.js";
- 
-// Create
+
+// Build visuals object from req.files (shared helper)
+function buildVisualsFromFiles(files) {
+  const visuals = { images: [] };
+  if (files?.images?.length) {
+    visuals.images = files.images.map((file) => ({
+      filename: file.filename,
+      path: file.path.replace(/\\/g, "/"),
+    }));
+  }
+  if (files?.video?.[0]) {
+    visuals.video = {
+      filename: files.video[0].filename,
+      path: files.video[0].path.replace(/\\/g, "/"),
+    };
+  }
+  return visuals;
+}
+
+// Upload visuals only (for "upload before submit" flow). Returns visuals to send in create body.
+export const uploadAnnouncementVisualsOnly = async (req, res) => {
+  try {
+    const visuals = buildVisualsFromFiles(req.files);
+    res.status(200).json(visuals);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Create (accepts multipart with files OR JSON with pre-uploaded visuals in body.visuals)
 export const createAnnouncement = async (req, res) => {
   try {
-    const data = req.body;
+    const data = { ...req.body };
 
-    // Build visuals data from uploaded files
-    const visuals = {};
-    if (req.files) {
-      if (req.files.images) {
-        visuals.images = req.files.images.map(file => ({
-          filename: file.filename,
-          path: file.path,
-        }));
-      }
-      if (req.files.video && req.files.video.length > 0) {
-        visuals.video = {
-          filename: req.files.video[0].filename,
-          path: req.files.video[0].path,
-        };
-      }
+    let visuals;
+    if (req.files && (req.files.images?.length || req.files.video?.length)) {
+      visuals = buildVisualsFromFiles(req.files);
+    } else if (data.visuals != null) {
+      visuals = typeof data.visuals === "string" ? JSON.parse(data.visuals) : data.visuals;
+    } else {
+      visuals = { images: [] };
     }
 
-    // Add visuals JSON to data
     data.visuals = visuals;
+
+    // Auto-set published_at to now if not provided
+    if (data.published_at == null || data.published_at === "") {
+      data.published_at = new Date().toISOString().slice(0, 19).replace("T", " ");
+    }
 
     const announcement = await Announcement.create(data);
     res.status(201).json(announcement);
@@ -165,7 +189,8 @@ export const updateAnnouncement = async (req, res) => {
     if (req.body.category !== undefined) updateData.category = req.body.category;
     if (req.body.published_at !== undefined) updateData.published_at = req.body.published_at;
     if (req.body.source !== undefined) updateData.source = req.body.source;
-    
+    if (req.body.reading_time !== undefined) updateData.reading_time = req.body.reading_time;
+
     // Always update visuals if we processed any files or removals
     if (req.files || removedImages.length > 0 || removeExistingVideo) {
       updateData.visuals = updatedVisuals; // Store as object

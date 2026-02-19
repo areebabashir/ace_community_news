@@ -440,3 +440,38 @@ export const getNewsCountThisMonth = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// Delete single news (draft or rejected only; club can delete own)
+export const deleteNews = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const news = await ClubNews.findByPk(id);
+    if (!news) return res.status(404).json({ message: "News not found" });
+    if (!["draft", "rejected"].includes(news.status)) {
+      return res.status(400).json({ message: "Only draft or rejected news can be deleted" });
+    }
+    if (req.user?.club_id != null && Number(news.club_id) !== Number(req.user.club_id)) {
+      return res.status(403).json({ message: "You can only delete your club's news" });
+    }
+    await news.destroy();
+    res.json({ message: "News deleted" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Delete all rejected news for a club
+export const deleteAllRejectedNews = async (req, res) => {
+  try {
+    const clubId = req.params.clubId;
+    if (req.user?.club_id != null && Number(clubId) !== Number(req.user.club_id)) {
+      return res.status(403).json({ message: "You can only empty rejected news for your club" });
+    }
+    const deleted = await ClubNews.destroy({
+      where: { club_id: clubId, status: "rejected" },
+    });
+    res.json({ message: "Rejected news emptied", deleted });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
